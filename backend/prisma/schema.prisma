@@ -24,13 +24,25 @@ enum Role {
 model User{
   id       String  @id @default(cuid())
   email     String  @unique
-  name      String?
+  name      String
   hashedPassword  String
   verified Boolean @default(false)
   role      Role @default(ATTENDEE)
   organizer Organizer?
+  sessions Session[]
   registration Registration[]
   document Document[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+model Session {
+  id        String   @id @unique @default(uuid())
+  jwt       String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    String
+  revoked   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
