@@ -1,9 +1,17 @@
-import Image from "next/image";
-import { Inter } from "next/font/google";
-import { Button, Card, CardHeader, CardBody } from "@nextui-org/react";
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  Link,
+  Button,
+} from "@nextui-org/react";
+import GuestNav from "@/components/GuestNav";
 
-const inter = Inter({ subsets: ["latin"] });
-
-export default function Home() {
-  return <main></main>;
+export default function Landing() {
+  return (
+    <main>
+      <GuestNav />
+    </main>
+  );
 }

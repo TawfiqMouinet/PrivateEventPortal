@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 import { prisma } from "../utils/db";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
-import { decode } from "punycode";
 
 interface DecodedJwtPayload extends JwtPayload {
   id: string;
@@ -22,7 +21,7 @@ const SECRET = process.env.JWT_SECRET!;
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, dob, password } = req.body;
     const existingUser = await prisma.user.findUnique({
       where: {
         email: email,
@@ -40,6 +39,7 @@ export const register = async (req: Request, res: Response) => {
         email: email,
         hashedPassword: hashedPassword,
         name: name,
+        dob: dob,
       },
     });
     console.log("User created successfully!");
@@ -58,7 +58,7 @@ export const login = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password, verified } = req.body;
+    const { email, password } = req.body;
 
     console.log("Checking if user exists");
     const user = await prisma.user.findUnique({
@@ -73,10 +73,7 @@ export const login = async (
     }
 
     console.log("Checking if password is correct");
-    const isPasswordCorrect = await bcrypt.compareSync(
-      password,
-      user.hashedPassword
-    );
+    const isPasswordCorrect = bcrypt.compareSync(password, user.hashedPassword);
     if (!isPasswordCorrect) {
       console.log("Password is incorrect");
       return res.status(402).json({ message: "Invalid credentials" });
@@ -118,6 +115,8 @@ export const createSession = async (req: AuthRequest, res: Response) => {
           },
         });
         const sessionId = session.id;
+        res.cookie("sessionId", sessionId, { httpOnly: true });
+        res.cookie("jwt", req.token, { httpOnly: true });
         res.status(200).json({
           message: "Login Successful!",
           user,
@@ -143,7 +142,6 @@ export const logout = async (req: AuthRequest, res: Response) => {
   if (!cookieHeader) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-
   const cookies: Cookies = {};
   cookieHeader.split(";").forEach((cookie) => {
     const [key, value] = cookie.trim().split("=");

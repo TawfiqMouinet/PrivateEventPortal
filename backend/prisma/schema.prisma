@@ -28,6 +28,7 @@ model User{
   hashedPassword  String
   verified Boolean @default(false)
   role      Role @default(ATTENDEE)
+  dob       DateTime
   organizer Organizer?
   sessions Session[]
   registration Registration[]
@@ -49,20 +50,23 @@ model Session {
 }
 
 model Organizer{
-user User @relation(fields: [id], references: [id])
+user User @relation(fields: [id], references: [id], onDelete: Cascade)
 id String @id
 events Event[]
 }
 
 model Event{
   id       String  @id @default(cuid())
-  organizer Organizer @relation(fields: [organizerId], references: [id])
+  organizer Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   organizerId String
   title     String
   description String
   location String
   date DateTime
   registrations Registration[]
+  minAge Int @default(0)
+  numOfAttendees Int @default(0)
+  maxAttendees Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -75,18 +79,20 @@ enum RegStatus {
 
 model Registration{
   id      String  @id @default(cuid())
-  event   Event @relation(fields: [eventId], references: [id])
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   eventId String
-  user    User @relation(fields: [userId], references: [id])
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   status String
   date DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Document{
   id      String  @id @default(cuid())
-  user User @relation(fields: [userId], references: [id])
-  userId String
-  url String
-  uploadedAt DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  userId String @unique
+  url String @unique
+  uploadedAt DateTime @default(now())
 }

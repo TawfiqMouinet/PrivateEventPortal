@@ -8,8 +8,6 @@ import {
   isUser,
 } from "../controllers/authController";
 import { User } from "@prisma/client";
-import { validateSchema } from "../models/validateSchema";
-import { userSchema } from "../models/userModel";
 
 interface AuthRequest extends Request {
   user?: User;
@@ -17,7 +15,7 @@ interface AuthRequest extends Request {
 
 export const authRouter = express.Router();
 
-authRouter.post("/register", validateSchema(userSchema), register);
+authRouter.post("/register", register);
 authRouter.post("/login", login, createSession);
 authRouter.get("/logout", logout);
 authRouter.get(
