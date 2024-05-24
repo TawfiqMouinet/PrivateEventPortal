@@ -10,11 +10,11 @@ import GateLogo from "@/assets/Gate";
 
 export default function GuestNav() {
   return (
-    <Navbar maxWidth="full" height="5rem" className="" isBordered>
+    <Navbar maxWidth="full" height="5rem" isBordered>
       <NavbarBrand className="ml-4">
         <Link href={"/"}>
-          <GateLogo width={35} height={35} />
-          <p className="font-semibold text-2xl text-black ml-2 mt-1">
+          <GateLogo width={40} height={40} />
+          <p className="font-semibold text-3xl text-black ml-2 mt-1">
             EventPortal
           </p>
         </Link>
@@ -25,8 +25,8 @@ export default function GuestNav() {
             as={Link}
             color="primary"
             href="/signup"
-            size="md"
-            className="text-medium"
+            size="lg"
+            className="text-lg"
           >
             Sign Up
           </Button>
@@ -36,8 +36,8 @@ export default function GuestNav() {
             as={Link}
             color="primary"
             href="/signin"
-            size="md"
-            className="text-medium"
+            size="lg"
+            className="text-lg"
           >
             Sign In
           </Button>
