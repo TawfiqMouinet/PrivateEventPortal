@@ -6,12 +6,13 @@ import {
   CardFooter,
   Input,
 } from "@nextui-org/react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { apiurl } from "@/context/apiURL";
 import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/router";
 import GuestNav from "@/components/GuestNav";
-
+import { useUserContext } from "@/hooks/useUserContext";
+import { UserContext } from "@/context/UserContext";
 export default function SignIn() {
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
@@ -25,14 +26,22 @@ export default function SignIn() {
         password,
       }),
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-type": "application/json",
       },
     });
     if (res.status === 200) {
-      router.replace("/home");
+      const data = await res.json();
+      if (data.user.role === "ATTENDEE") {
+        router.replace("/attendee/home");
+      } else if (data.user.role === "ORGANIZER") {
+        router.replace("/organizer/home");
+      }
     } else if (res.status === 403) {
       router.replace("/signin/unverified");
+    } else {
+      alert("Invalid Credentials");
     }
   }
 

@@ -13,7 +13,7 @@ import { useUserContext } from "@/hooks/useUserContext";
 
 export default function Home() {
   const { user } = useUserContext();
-  console.log("Home User: ", user);
+  console.log("Profile User: ", user);
   return (
     <main className="h-screen ">
       <AuthNav />
@@ -23,7 +23,7 @@ export default function Home() {
         </CardHeader>
         <CardBody>
           <p className="text-center text-2xl">
-            You can now access your account and make changes to your profile.
+            Here you will find your profile information.
           </p>
         </CardBody>
       </Card>

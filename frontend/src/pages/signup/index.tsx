@@ -7,6 +7,8 @@ import {
   Input,
   DatePicker,
   DateValue,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
 import { useState } from "react";
 import { UploadDropZone } from "../api/uploadthing";
@@ -20,6 +22,7 @@ export default function SignUp() {
   const [name, setName] = useState<string | null>(null);
   const [dob, setDob] = useState<DateValue | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [role, setRole] = useState<"ATTENDEE" | "ORGANIZER">("ATTENDEE");
   const [password, setPassword] = useState<string | null>(null);
   const router = useRouter();
 
@@ -28,6 +31,7 @@ export default function SignUp() {
       body: JSON.stringify({
         name,
         dob: dob?.toDate("UTC"),
+        role,
         email,
         password,
       }),
@@ -73,6 +77,22 @@ export default function SignUp() {
               isRequired
               showMonthAndYearPickers
             />
+            <Select value={role} label="Role" isRequired>
+              <SelectItem
+                key="ATTENDEE"
+                value="Attendee"
+                onClick={() => setRole("ATTENDEE")}
+              >
+                Attendee
+              </SelectItem>
+              <SelectItem
+                key="ORGANIZER"
+                value="Organizer"
+                onClick={() => setRole("ORGANIZER")}
+              >
+                Organizer
+              </SelectItem>
+            </Select>
           </div>
           <div className=" flex flex-row gap-4 my-3">
             <Input

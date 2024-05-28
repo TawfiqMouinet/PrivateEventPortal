@@ -11,7 +11,6 @@ export const createDocument = async (req: Request, res: Response) => {
           url: req.body.docURL,
         },
       });
-      console.log("Document created successfully: ", newDoc);
       res.status(201).json({ message: "Document created successfully" });
     } catch (error) {
       res.status(500).json(error);

@@ -72,7 +72,7 @@ model Event{
 }
 
 enum RegStatus {
-  PENDING
+  CONFIRMED
   ATTENDED
   CANCELLED
 }
@@ -83,8 +83,7 @@ model Registration{
   eventId String
   user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
-  status String
-  date DateTime
+  status RegStatus @default(CONFIRMED) 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

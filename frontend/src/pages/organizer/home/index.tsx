@@ -8,7 +8,7 @@ import {
 } from "@nextui-org/react";
 import { useState } from "react";
 import { apiurl } from "@/context/apiURL";
-import AuthNav from "@/components/AttendeeNav";
+import OrganizerNav from "@/components/OrganizerNav";
 import { useUserContext } from "@/hooks/useUserContext";
 
 export default function Home() {
@@ -16,7 +16,7 @@ export default function Home() {
   console.log("Home User: ", user);
   return (
     <main className="h-screen ">
-      <AuthNav />
+      <OrganizerNav />
       <Card className="w-3/4 mx-auto my-14">
         <CardHeader className="text-3xl justify-center ">
           Welcome! You are now logged in.

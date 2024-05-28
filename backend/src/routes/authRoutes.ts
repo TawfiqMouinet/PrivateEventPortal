@@ -4,6 +4,7 @@ import {
   login,
   createSession,
   logout,
+  updateProfile,
   verifyToken,
   isUser,
 } from "../controllers/authController";
@@ -27,3 +28,4 @@ authRouter.get(
     res.status(202).json({ user });
   }
 );
+authRouter.put("/update", verifyToken, isUser, updateProfile);

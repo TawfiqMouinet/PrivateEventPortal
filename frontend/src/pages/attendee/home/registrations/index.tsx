@@ -6,14 +6,15 @@ import {
   CardFooter,
   Input,
 } from "@nextui-org/react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { apiurl } from "@/context/apiURL";
 import AuthNav from "@/components/AttendeeNav";
+import { UserContext } from "@/context/UserContext";
 import { useUserContext } from "@/hooks/useUserContext";
 
 export default function Home() {
-  const { user } = useUserContext();
-  console.log("Home User: ", user);
+  const user = useContext(UserContext)?.user;
+  console.log("Registration User: ", user);
   return (
     <main className="h-screen ">
       <AuthNav />
@@ -23,7 +24,7 @@ export default function Home() {
         </CardHeader>
         <CardBody>
           <p className="text-center text-2xl">
-            You can now access your account and make changes to your profile.
+            Here you will find your event registrations.
           </p>
         </CardBody>
       </Card>

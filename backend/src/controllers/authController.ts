@@ -21,7 +21,7 @@ const SECRET = process.env.JWT_SECRET!;
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, dob, password } = req.body;
+    const { name, email, dob, role, password } = req.body;
     const existingUser = await prisma.user.findUnique({
       where: {
         email: email,
@@ -39,10 +39,19 @@ export const register = async (req: Request, res: Response) => {
         email: email,
         hashedPassword: hashedPassword,
         name: name,
+        role: role,
         dob: dob,
       },
     });
     console.log("User created successfully!");
+    if (newUser.role === "ORGANIZER") {
+      await prisma.organizer.create({
+        data: {
+          id: newUser.id,
+        },
+      });
+      console.log("Organizer created successfully!");
+    }
     res
       .status(201)
       .json({ message: "User created successfully!", user: newUser });
@@ -158,6 +167,8 @@ export const logout = async (req: AuthRequest, res: Response) => {
         id: sessionId,
       },
     });
+    res.clearCookie("sessionId");
+    res.clearCookie("jwt");
     res.status(200).json({ message: "Logout Successful" });
   } catch (error) {
     return res.status(405).json({ message: "Invalid Token", error });
@@ -193,7 +204,7 @@ export const verifyToken = (
     req.user = decodedToken;
     next();
   } catch (error) {
-    return res.status(405).json({ message: "Invalid Token" });
+    return res.status(405).json({ message: "Invalid Token", error: error });
   }
 };
 
@@ -220,5 +231,26 @@ export const isUser = async (
     }
   } catch (error) {
     res.status(500).json({ message: "An error occurred", error });
+  }
+};
+
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.user) {
+      const { name, email, dob } = req.body;
+      const updatedUser = await prisma.user.update({
+        where: {
+          id: req.user.id,
+        },
+        data: {
+          name: name,
+          email: email,
+          dob: dob,
+        },
+      });
+      res.status(200).json({ message: "Profile updated successfully" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
   }
 };
