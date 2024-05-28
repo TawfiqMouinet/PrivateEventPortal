@@ -50,6 +50,7 @@ export default function OrganizerNav() {
           "data-[active=true]:after:h-[2px]",
           "data-[active=true]:after:rounded-[2px]",
           "data-[active=true]:after:bg-primary",
+          "data-[active=true]:after:underline",
         ],
       }}
       isBordered

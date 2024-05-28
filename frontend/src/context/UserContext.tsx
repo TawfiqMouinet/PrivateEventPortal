@@ -27,8 +27,7 @@ export const UserContext = createContext<{ user: User | null } | null>(null);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
-  const router = useRouter().asPath;
-  console.log(router);
+  const router = useRouter();
   useEffect(() => {
     console.log("Fetching User");
     async function fetchUser() {
@@ -38,10 +37,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       });
       if (res.status === 202) {
         setUser((await res.json()).user);
+      } else if (res.status === 403) {
+        router.replace("/signin");
       }
     }
     fetchUser();
-  }, [router]);
+  }, [router.asPath]);
   return (
     <UserContext.Provider value={{ user: user }}>
       {children}
