@@ -10,13 +10,16 @@ import GateLogo from "@/assets/Gate";
 import { apiurl } from "@/context/apiURL";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useUserContext } from "@/hooks/useUserContext";
 
 export default function OrganizerNav() {
   const router = useRouter();
+  const { user } = useUserContext();
   const [dashActive, setDashActive] = useState(false);
   const [profileActive, setProfileActive] = useState(false);
   const [registrationsActive, setRegistrationsActive] = useState(false);
   const [eventsActive, setEventsActive] = useState(false);
+  const [myEventsActive, setMyEventsActive] = useState(false);
 
   useEffect(() => {
     if (router.pathname === "/organizer/home") {
@@ -27,8 +30,13 @@ export default function OrganizerNav() {
       setRegistrationsActive(true);
     } else if (router.pathname === "/organizer/home/events") {
       setEventsActive(true);
+    } else if (router.pathname === "/organizer/home/myevents") {
+      setMyEventsActive(true);
     }
-  }, [router.pathname]);
+    if (user && user?.role !== "ORGANIZER") {
+      router.replace(`/${user?.role.toLowerCase()}/home`);
+    }
+  }, [router.pathname, user]);
 
   async function handleLogOut() {
     const res = await fetch(`${apiurl}/api/auth/logout`, {
@@ -78,6 +86,15 @@ export default function OrganizerNav() {
             onPress={() => setEventsActive(true)}
           >
             Events
+          </Link>
+        </NavbarItem>
+        <NavbarItem isActive={myEventsActive}>
+          <Link
+            href="/organizer/home/myevents"
+            className="text-lg"
+            onPress={() => setMyEventsActive(true)}
+          >
+            My Events
           </Link>
         </NavbarItem>
         <NavbarItem isActive={profileActive}>

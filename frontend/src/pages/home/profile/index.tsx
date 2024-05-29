@@ -1,19 +1,9 @@
-import {
-  Button,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Input,
-} from "@nextui-org/react";
-import { useState } from "react";
-import { apiurl } from "@/context/apiURL";
+import { Card, CardHeader, CardBody } from "@nextui-org/react";
 import AuthNav from "@/components/AttendeeNav";
 import { useUserContext } from "@/hooks/useUserContext";
 
 export default function Home() {
   const { user } = useUserContext();
-  console.log("Profile User: ", user);
   return (
     <main className="h-screen ">
       <AuthNav />

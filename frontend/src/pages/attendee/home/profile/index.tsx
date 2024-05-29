@@ -13,6 +13,7 @@ import { apiurl } from "@/context/apiURL";
 import { useUserContext } from "@/hooks/useUserContext";
 import { parseDate } from "@internationalized/date";
 import AttendeeNav from "@/components/AttendeeNav";
+import toast from "react-hot-toast";
 
 export default function Home() {
   const { user } = useUserContext();
@@ -40,9 +41,9 @@ export default function Home() {
       }),
     });
     if (res.ok) {
-      alert("Profile updated successfully.");
+      toast("Profile updated successfully.", { icon: "✔️" });
     } else {
-      alert("Failed to update profile.");
+      toast("Failed to update profile.", { icon: "❌" });
     }
   }
 
@@ -81,8 +82,12 @@ export default function Home() {
               </div>
               <div className=" flex flex-row gap-4 my-3"></div>
             </CardBody>
-            <CardFooter>
-              <Button color="primary" onPress={handleProfileUpdate}>
+            <CardFooter className="flex justify-end">
+              <Button
+                color="primary"
+                onPress={handleProfileUpdate}
+                className="mr-5"
+              >
                 Save
               </Button>
             </CardFooter>

@@ -15,6 +15,7 @@ import { UploadDropZone } from "../api/uploadthing";
 import { apiurl } from "@/context/apiURL";
 import GuestNav from "@/components/GuestNav";
 import { useRouter } from "next/router";
+import toast from "react-hot-toast";
 
 export default function SignUp() {
   const [isVisible, setIsVisible] = useState(false);
@@ -123,11 +124,11 @@ export default function SignUp() {
                 config={{ mode: "auto" }}
                 appearance={{ container: "h-2/3" }}
                 onClientUploadComplete={(res) => {
-                  alert("Upload Completed");
+                  toast("Upload Completed", { icon: "✔️" });
                   setDocURL(res[0].url);
                 }}
                 onUploadError={(error: Error) => {
-                  alert(`ERROR! ${error.message}`);
+                  toast("Upload Failed", { icon: "❌" });
                 }}
               />
             </div>

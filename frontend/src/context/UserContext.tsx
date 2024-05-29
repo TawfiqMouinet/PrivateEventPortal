@@ -16,6 +16,7 @@ export interface User {
   verified: boolean;
   role: "ADMIN" | "ORGANIZER" | "ATTENDEE";
   dob: Date;
+  createdAt: Date;
 }
 
 export interface UserAction {
@@ -29,15 +30,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
   const router = useRouter();
   useEffect(() => {
-    console.log("Fetching User");
     async function fetchUser() {
       const res = await fetch(`${apiurl}/api/auth/getuser`, {
         method: "GET",
         credentials: "include",
       });
       if (res.status === 202) {
-        setUser((await res.json()).user);
-      } else if (res.status === 403) {
+        const tempUser = (await res.json()).user;
+        setUser(tempUser);
+      } else if (
+        res.status === 403 &&
+        router.asPath !== "/signin" &&
+        router.asPath !== "/signup" &&
+        router.asPath !== "/"
+      ) {
         router.replace("/signin");
       }
     }

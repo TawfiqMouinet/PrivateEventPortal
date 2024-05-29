@@ -13,6 +13,7 @@ import { useRouter } from "next/router";
 import GuestNav from "@/components/GuestNav";
 import { useUserContext } from "@/hooks/useUserContext";
 import { UserContext } from "@/context/UserContext";
+import toast from "react-hot-toast";
 export default function SignIn() {
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
@@ -37,11 +38,13 @@ export default function SignIn() {
         router.replace("/attendee/home");
       } else if (data.user.role === "ORGANIZER") {
         router.replace("/organizer/home");
+      } else if (data.user.role === "ADMIN") {
+        router.replace("/admin/home");
       }
     } else if (res.status === 403) {
       router.replace("/signin/unverified");
     } else {
-      alert("Invalid Credentials");
+      toast("Invalid Credentials", { icon: "❌" });
     }
   }
 

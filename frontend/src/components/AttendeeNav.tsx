@@ -10,8 +10,10 @@ import GateLogo from "@/assets/Gate";
 import { apiurl } from "@/context/apiURL";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useUserContext } from "@/hooks/useUserContext";
 
 export default function AttendeeNav() {
+  const { user } = useUserContext();
   const router = useRouter();
   const [dashActive, setDashActive] = useState(false);
   const [profileActive, setProfileActive] = useState(false);
@@ -28,7 +30,10 @@ export default function AttendeeNav() {
     } else if (router.pathname === "/attendee/home/events") {
       setEventsActive(true);
     }
-  }, [router.pathname]);
+    if (user && user?.role !== "ATTENDEE") {
+      router.replace(`/${user?.role.toLowerCase()}/home`);
+    }
+  }, [router.pathname, user]);
 
   async function handleLogOut() {
     const res = await fetch(`${apiurl}/api/auth/logout`, {
@@ -70,7 +75,7 @@ export default function AttendeeNav() {
             Dashboard
           </Link>
         </NavbarItem>
-        <NavbarItem isActive={dashActive}>
+        <NavbarItem isActive={eventsActive}>
           <Link
             href="/attendee/home/events"
             className="text-lg"

@@ -6,7 +6,13 @@ import {
   TableRow,
   TableCell,
   TableColumn,
+  getKeyValue,
   SortDescriptor,
+  Selection,
+  DropdownItem,
+  DropdownMenu,
+  Dropdown,
+  DropdownTrigger,
   Modal,
   ModalContent,
   ModalHeader,
@@ -19,7 +25,6 @@ import {
   DatePicker,
   Textarea,
   Tooltip,
-  DateInput,
   Spinner,
 } from "@nextui-org/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -28,15 +33,16 @@ import OrganizerNav from "@/components/OrganizerNav";
 import { useUserContext } from "@/hooks/useUserContext";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
-import { FaPenToSquare } from "react-icons/fa6";
-import { MdCancel } from "react-icons/md";
-import { IoEyeOutline, IoSearch } from "react-icons/io5";
-import { IoMdAdd } from "react-icons/io";
+import { BsThreeDotsVertical } from "react-icons/bs";
 import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
 import toast from "react-hot-toast";
+import { IoSearch } from "react-icons/io5";
+import { IoMdAdd } from "react-icons/io";
+import { FaPenToSquare } from "react-icons/fa6";
+import { MdDelete } from "react-icons/md";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const res = await fetch(`${apiurl}/api/events/get`, {
+  const res = await fetch(`${apiurl}/api/events/getByOrganizer`, {
     method: "GET",
     credentials: "include",
     headers: {
@@ -54,7 +60,7 @@ export default function Events({
   type Registration = (typeof events.registrations)[0];
   const { user } = useUserContext();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const detailsModal = useDisclosure();
+  const editModal = useDisclosure();
   const router = useRouter();
   const [filterValue, setFilterValue] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -74,13 +80,7 @@ export default function Events({
   const [oldEventDate, setOldEventDate] = useState<DateValue | null>();
   const [oldEventMaxAttendees, setOldEventMaxAttendees] = useState("");
   const [oldEventMinAge, setOldEventMinAge] = useState("");
-
-  function calculate_age(dob: Date) {
-    var diff_ms = Date.now() - dob.getTime();
-    var age_dt = new Date(diff_ms);
-
-    return Math.abs(age_dt.getUTCFullYear() - 1970);
-  }
+  const [oldEventId, setOldEventId] = useState("");
 
   async function handleNewEvent() {
     const res = await fetch(`${apiurl}/api/events/create`, {
@@ -110,49 +110,49 @@ export default function Events({
   useEffect(() => {
     return;
   }, [user]);
-  async function handleNewReg(event: Event) {
-    const age = calculate_age(new Date(user?.dob!));
-    if (age < event.minAge) {
-      toast("You are not eligible for this event!", { icon: "❌" });
-      return;
-    }
-    if (event.registrations.length >= event.maxAttendees) {
-      toast("Event is full!", { icon: "❌" });
-      return;
-    }
-    const res = await fetch(`${apiurl}/api/registrations/create`, {
-      method: "POST",
+
+  async function handleEditEvent() {
+    const res = await fetch(`${apiurl}/api/events/update`, {
+      method: "PUT",
       credentials: "include",
+      body: JSON.stringify({
+        id: oldEventId,
+        organizerId: user?.id,
+        title: oldEventTitle,
+        description: oldEventDescription,
+        location: oldEventLocation,
+        date: oldEventDate?.toDate("UTC"),
+        maxAttendees: parseInt(oldEventMaxAttendees),
+        minAge: parseInt(oldEventMinAge),
+      }),
       headers: {
         "Content-type": "application/json",
       },
-      body: JSON.stringify({
-        event: event,
-      }),
     });
     if (res.ok) {
+      toast("Event updated successfully!", { icon: "✔️" });
+      editModal.onClose();
       router.replace(router.asPath);
-      toast("Registered successfully!", { icon: "✔️" });
     } else {
-      toast("Failed to register.", { icon: "❌" });
+      toast("Failed to update event.", { icon: "❌" });
     }
   }
-  async function handleDeleteReg(regId: string) {
-    const res = await fetch(`${apiurl}/api/registrations/delete`, {
+  async function handleDeleteEvent(eventId: string) {
+    const res = await fetch(`${apiurl}/api/events/delete`, {
       method: "POST",
       credentials: "include",
+      body: JSON.stringify({
+        id: eventId,
+      }),
       headers: {
         "Content-type": "application/json",
       },
-      body: JSON.stringify({
-        regId: regId,
-      }),
     });
     if (res.ok) {
+      toast("Event deleted successfully!", { icon: "✔️" });
       router.replace(router.asPath);
-      toast("Cancelled successfully!", { icon: "✔️" });
     } else {
-      toast("Failed to cancel.", { icon: "❌" });
+      toast("Failed to delete event.", { icon: "❌" });
     }
   }
   const [page, setPage] = useState(1);
@@ -274,9 +274,6 @@ export default function Events({
   const renderCell = useCallback(
     (event: Event, columnKey: React.Key) => {
       const cellValue = event[columnKey as keyof Event];
-      const existingReg = event.registrations.find(
-        (r: Registration) => r.user.id === user?.id
-      );
       switch (columnKey) {
         case "date":
           const date = new Date(event.date);
@@ -296,50 +293,37 @@ export default function Events({
           }
         case "actions":
           return (
-            <>
-              <div className="relative flex items-center gap-2">
-                <Tooltip content="Details" placement="left">
-                  <span
-                    className="text-xl text-default-600 cursor-pointer active:opacity-50"
-                    onClick={() => {
-                      setOldEventTitle(event.title);
-                      setOldEventDescription(event.description);
-                      setOldEventLocation(event.location);
-                      setOldEventDate(
-                        parseDate(event.date.toString().slice(0, 10)!)
-                      );
-                      setOldEventMaxAttendees(event.maxAttendees.toString());
-                      setOldEventMinAge(event.minAge.toString());
-                      detailsModal.onOpenChange();
-                    }}
-                  >
-                    <IoEyeOutline />
-                  </span>
-                </Tooltip>
-                {!existingReg && (
-                  <Tooltip content="Register" placement="right">
-                    <span
-                      className="text-lg text-default-600 cursor-pointer active:opacity-50"
-                      onClick={() => handleNewReg(event)}
-                    >
-                      <FaPenToSquare />
-                    </span>
-                  </Tooltip>
-                )}
-                {existingReg && (
-                  <Tooltip color="danger" content="Cancel" placement="right">
-                    <span
-                      className="text-xl text-danger cursor-pointer active:opacity-50"
-                      onClick={() => {
-                        handleDeleteReg(existingReg.id);
-                      }}
-                    >
-                      <MdCancel />
-                    </span>
-                  </Tooltip>
-                )}
-              </div>
-            </>
+            <div className="relative flex items-center gap-2">
+              <Tooltip content="Edit" placement="left">
+                <span
+                  className="text-lg text-default-600 cursor-pointer active:opacity-50"
+                  onClick={() => {
+                    setOldEventId(event.id);
+                    setOldEventTitle(event.title);
+                    setOldEventDescription(event.description);
+                    setOldEventLocation(event.location);
+                    setOldEventDate(
+                      parseDate(event.date.toString().slice(0, 10)!)
+                    );
+                    setOldEventMaxAttendees(event.maxAttendees.toString());
+                    setOldEventMinAge(event.minAge.toString());
+                    editModal.onOpenChange();
+                  }}
+                >
+                  <FaPenToSquare />
+                </span>
+              </Tooltip>
+              <Tooltip content="Delete" color="danger" placement="right">
+                <span
+                  className="text-xl text-default-600 cursor-pointer active:opacity-50"
+                  onClick={() => {
+                    handleDeleteEvent(event.id);
+                  }}
+                >
+                  <MdDelete className="text-[#f31260]" />
+                </span>
+              </Tooltip>
+            </div>
           );
         default:
           return cellValue;
@@ -436,7 +420,7 @@ export default function Events({
                       <Input
                         type="number"
                         label="Max Attendees"
-                        min={1}
+                        min={0}
                         isRequired
                         onValueChange={setNewEventMaxAttendees}
                       />
@@ -466,7 +450,7 @@ export default function Events({
                     <Button
                       color="danger"
                       onPress={() => {
-                        onClose;
+                        onClose();
                         setNewEventDate(null);
                         setNewEventDescription("");
                         setNewEventLocation("");
@@ -484,9 +468,9 @@ export default function Events({
           </Modal>
           {events?.map((event: Event) => (
             <Modal
-              isOpen={detailsModal.isOpen}
+              isOpen={editModal.isOpen}
               key={event.id}
-              onOpenChange={detailsModal.onOpenChange}
+              onOpenChange={editModal.onOpenChange}
             >
               <ModalContent>
                 {(onClose) => (
@@ -500,12 +484,15 @@ export default function Events({
                           type="text"
                           label="Event Title"
                           value={oldEventTitle}
-                          isReadOnly
+                          isRequired
+                          onValueChange={setOldEventTitle}
                         />
-                        <DateInput
+                        <DatePicker
                           label="Event Date"
+                          onChange={setOldEventDate}
                           value={oldEventDate}
-                          isReadOnly
+                          isRequired
+                          showMonthAndYearPickers
                         />
                       </div>
                       <div className=" flex flex-row gap-4 my-3">
@@ -513,7 +500,8 @@ export default function Events({
                           type="text"
                           label="Location"
                           value={oldEventLocation}
-                          isReadOnly
+                          isRequired
+                          onValueChange={setOldEventLocation}
                         />
                         <Input
                           type="number"
@@ -521,23 +509,40 @@ export default function Events({
                           min={0}
                           max={150}
                           value={oldEventMinAge}
-                          isReadOnly
+                          isRequired
+                          onValueChange={setOldEventMinAge}
                         />
                         <Input
                           type="number"
                           label="Max Attendees"
                           min={0}
                           value={oldEventMaxAttendees}
-                          isReadOnly
+                          isRequired
+                          onValueChange={setOldEventMaxAttendees}
                         />
                       </div>
                       <Textarea
                         label="Description"
                         value={oldEventDescription}
-                        isReadOnly
+                        isRequired
+                        onValueChange={setOldEventDescription}
                       />
                     </ModalBody>
                     <ModalFooter>
+                      <Button
+                        color="primary"
+                        onPress={handleEditEvent}
+                        isDisabled={
+                          !oldEventTitle ||
+                          !oldEventDescription ||
+                          !oldEventLocation ||
+                          !oldEventDate ||
+                          !oldEventMaxAttendees ||
+                          !oldEventMinAge
+                        }
+                      >
+                        Save
+                      </Button>
                       <Button
                         color="danger"
                         onPress={() => {
