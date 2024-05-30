@@ -35,7 +35,7 @@ import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
 import toast from "react-hot-toast";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const res = await fetch(`${apiurl}/api/events/get`, {
+  const res = await fetch(`http://backend:4000/api/events/get`, {
     method: "GET",
     credentials: "include",
     headers: {

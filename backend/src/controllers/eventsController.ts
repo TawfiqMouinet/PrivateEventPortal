@@ -8,7 +8,7 @@ interface AuthRequest extends Request {
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    const [
+    const {
       organizerId,
       title,
       description,
@@ -16,7 +16,7 @@ export const createEvent = async (req: Request, res: Response) => {
       date,
       maxAttendees,
       minAge,
-    ] = req.body;
+    } = req.body;
     const newEvent = await prisma.event.create({
       data: {
         organizerId: organizerId,
@@ -24,19 +24,28 @@ export const createEvent = async (req: Request, res: Response) => {
         description: description,
         location: location,
         date: date,
-        minAge: minAge,
         maxAttendees: maxAttendees,
+        minAge: minAge,
       },
     });
+    console.log("Event created successfully!");
     res.status(201).json({ message: "Event created successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server Error", error: error });
   }
 };
 
 export const getEvents = async (req: Request, res: Response) => {
   try {
-    const events = await prisma.event.findMany({});
+    const events = await prisma.event.findMany({
+      include: {
+        registrations: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
     res.status(200).json(events);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
@@ -49,6 +58,13 @@ export const getOrganizerEvents = async (req: AuthRequest, res: Response) => {
       where: {
         organizerId: req.user?.id,
       },
+      include: {
+        registrations: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
     res.json(events);
   } catch (error) {
@@ -58,7 +74,7 @@ export const getOrganizerEvents = async (req: AuthRequest, res: Response) => {
 
 export const updateEvent = async (req: Request, res: Response) => {
   try {
-    const [id, title, description, location, date, maxAttendees, minAge] =
+    const { id, title, description, location, date, maxAttendees, minAge } =
       req.body;
     const updatedEvent = await prisma.event.update({
       where: {

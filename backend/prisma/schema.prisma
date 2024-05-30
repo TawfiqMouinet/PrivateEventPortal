@@ -71,11 +71,6 @@ model Event{
   updatedAt DateTime @updatedAt
 }
 
-enum RegStatus {
-  CONFIRMED
-  ATTENDED
-  CANCELLED
-}
 
 model Registration{
   id      String  @id @default(cuid())
@@ -83,9 +78,9 @@ model Registration{
   eventId String
   user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
-  status RegStatus @default(CONFIRMED) 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@unique([eventId, userId])
 }
 
 model Document{

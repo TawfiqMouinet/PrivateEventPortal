@@ -18,11 +18,25 @@ interface AuthRequest extends Request {
 export const createRegistration = async (req: AuthRequest, res: Response) => {
   try {
     if (req.user?.id) {
-      const eventId = req.body.eventId;
+      const event = req.body.event;
+      const existingRegistration = await prisma.registration.findFirst({
+        where: {
+          userId: req.user.id,
+          eventId: event.id,
+        },
+      });
+      if (existingRegistration) {
+        res.status(400).json({ message: "Registration already exists" });
+        return;
+      }
+      if (event.maxAttendees - event.registrations.length <= 0) {
+        res.status(400).json({ message: "Event seats are full" });
+        return;
+      }
       const newRegistration = await prisma.registration.create({
         data: {
           userId: req.user?.id!,
-          eventId: eventId,
+          eventId: event.id,
         },
       });
       res.status(201).json({ message: "Registration created successfully" });
@@ -41,6 +55,9 @@ export const getRegistrations = async (req: AuthRequest, res: Response) => {
         where: {
           userId: req.user.id,
         },
+        include: {
+          event: true,
+        },
       });
       res.status(200).json(registrations);
     } else {
@@ -53,7 +70,17 @@ export const getRegistrations = async (req: AuthRequest, res: Response) => {
 
 export const deleteRegistration = async (req: AuthRequest, res: Response) => {
   try {
-    if (req.user?.id) {
+    if (req.body.eventId && req.user?.id) {
+      await prisma.registration.delete({
+        where: {
+          eventId_userId: {
+            eventId: req.body.eventId,
+            userId: req.user.id,
+          },
+        },
+      });
+      res.status(200).json({ message: "Registration deleted successfully" });
+    } else if (req.user?.id) {
       const regId = req.body.regId;
       await prisma.registration.delete({
         where: {

@@ -16,14 +16,14 @@ import { FaCalendarAlt } from "react-icons/fa";
 import { IoMdCreate } from "react-icons/io";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const res = await fetch(`${apiurl}/api/events/get`, {
+  const res = await fetch(`http://backend:4000/api/events/get`, {
     method: "GET",
     credentials: "include",
     headers: {
       Cookie: context.req.headers.cookie!,
     },
   });
-  const res1 = await fetch(`${apiurl}/api/registrations/get`, {
+  const res1 = await fetch(`http://backend:4000/api/registrations/get`, {
     method: "GET",
     credentials: "include",
     headers: {

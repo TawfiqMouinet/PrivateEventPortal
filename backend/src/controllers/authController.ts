@@ -29,7 +29,6 @@ export const register = async (req: Request, res: Response) => {
     });
 
     if (existingUser) {
-      alert("User already exists");
       return res.status(400).json({ message: "User already exists" });
     }
     console.log("Hashing password");
@@ -251,6 +250,24 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
       res.status(200).json({ message: "Profile updated successfully" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server Error", error: { error } });
+  }
+};
+
+export const verifyUser = async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.body.userId) {
+      const user = await prisma.user.update({
+        where: {
+          id: req.body.userId,
+        },
+        data: {
+          verified: true,
+        },
+      });
+      res.status(200).json({ message: "User verified successfully" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: { error } });
   }
 };

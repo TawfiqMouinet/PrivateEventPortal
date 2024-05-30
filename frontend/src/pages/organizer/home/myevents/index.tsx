@@ -42,7 +42,7 @@ import { FaPenToSquare } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const res = await fetch(`${apiurl}/api/events/getByOrganizer`, {
+  const res = await fetch(`http://backend:4000/api/events/getByOrganizer`, {
     method: "GET",
     credentials: "include",
     headers: {

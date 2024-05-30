@@ -21,4 +21,4 @@ eventsRouter.get(
   getOrganizerEvents
 );
 eventsRouter.put("/update", verifyToken, isUser, isOrganizer, updateEvent);
-eventsRouter.delete("/delete", verifyToken, isUser, isOrganizer, deleteEvent);
+eventsRouter.post("/delete", verifyToken, isUser, isOrganizer, deleteEvent);

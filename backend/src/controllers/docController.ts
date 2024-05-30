@@ -24,22 +24,26 @@ export const createDocument = async (req: Request, res: Response) => {
 
 export const getDocuments = async (req: Request, res: Response) => {
   try {
-    const documents = await prisma.document.findMany();
-    res.status(200).json({ documents });
+    const documents = await prisma.document.findMany({
+      include: { user: true },
+    });
+    if (documents.length === 0) {
+      return res.status(405).json({ message: "No documents found" });
+    }
+    res.status(200).json(documents);
   } catch (error) {
     res.status(500).json(error);
   }
 };
 
 export const deleteDocument = async (req: Request, res: Response) => {
-  if (req.body.docURL) {
+  if (req.body.docId) {
     try {
-      prisma.document.delete({
+      await prisma.document.delete({
         where: {
-          url: req.body.docURL,
+          id: req.body.docId,
         },
       });
-      console.log("Document deleted successfully");
       res.status(200).json({ message: "Document deleted successfully" });
     } catch (error) {
       res.status(500).json(error);

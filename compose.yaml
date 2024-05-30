@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  frontend:
+    container_name: frontend
+    image: frontend
+    build:
+      context: ./frontend
+      dockerfile: frontend.dockerfile
+    ports:
+      - 3000:3000
+    restart: always
+    depends_on:
+      - backend
+    links:
+      - backend
+
+  backend:
+    container_name: backend
+    image: backend
+    build:
+      context: ./backend
+      dockerfile: backend.dockerfile
+    ports:
+      - 4000:4000
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/PrivateEventPortal?schema=public
+      - UPLOADTHING_SECRET=sk_live_dd6bf33281f7b3331eaddb82aac4dfce3c762d8ba36fc2623135998955ab26e1
+      - UPLOADTHING_APP_ID=36lmytqnlu
+      - JWT_SECRET="caacb1e7b3148f8b771b8af1df95b91ff04d5825de4014192ea8e5a6b1833e72"
+      - PORT=4000
+    links:
+      - db
+  db:
+    container_name: db
+    image: postgres:12
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: PrivateEventPortal
+      PGUSER: postgres
+
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata: {}

@@ -9,7 +9,7 @@ export const uploadRouter = {
       maxFileCount: 1,
     },
   }).onUploadComplete((data) => {
-    console.log("Upload Completed", data);
+    console.log("Upload Completed");
   }),
 } satisfies FileRouter;
 

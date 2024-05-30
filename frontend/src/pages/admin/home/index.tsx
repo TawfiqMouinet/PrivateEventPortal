@@ -29,7 +29,7 @@ import { IoEyeOutline, IoSearch } from "react-icons/io5";
 import { MdCancel, MdCheck } from "react-icons/md";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const res = await fetch(`${apiurl}/api/docs/get`, {
+  const res = await fetch(`http://backend:4000/api/docs/get`, {
     method: "GET",
     credentials: "include",
     headers: {

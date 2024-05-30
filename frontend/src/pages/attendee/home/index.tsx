@@ -13,7 +13,7 @@ import { apiurl } from "@/context/apiURL";
 import { FaArrowTrendUp, FaBolt } from "react-icons/fa6";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const res1 = await fetch(`${apiurl}/api/registrations/get`, {
+  const res1 = await fetch(`http://backend:4000/api/registrations/get`, {
     method: "GET",
     credentials: "include",
     headers: {
