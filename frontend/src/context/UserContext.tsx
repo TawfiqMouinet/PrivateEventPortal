@@ -16,6 +16,7 @@ export interface User {
   verified: boolean;
   role: "ADMIN" | "ORGANIZER" | "ATTENDEE";
   dob: Date;
+  consented: boolean;
   createdAt: Date;
 }
 
@@ -38,10 +39,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (res.status === 202) {
         const tempUser = (await res.json()).user;
         setUser(tempUser);
+        if (
+          router.asPath.includes("/signin") ||
+          router.asPath.includes("/signup") ||
+          router.asPath === "/"
+        ) {
+          if (tempUser.role === "ATTENDEE") {
+            router.replace("/attendee/home");
+          } else if (tempUser.role === "ORGANIZER") {
+            router.replace("/organizer/home");
+          } else if (tempUser.role === "ADMIN") {
+            router.replace("/admin/home");
+          }
+        }
       } else if (
         res.status === 403 &&
-        router.asPath !== "/signin" &&
-        router.asPath !== "/signup" &&
+        !router.asPath.includes("/signin") &&
+        !router.asPath.includes("/signup") &&
         router.asPath !== "/"
       ) {
         router.replace("/signin");

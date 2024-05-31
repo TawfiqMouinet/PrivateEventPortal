@@ -6,13 +6,7 @@ import {
   TableRow,
   TableCell,
   TableColumn,
-  getKeyValue,
   SortDescriptor,
-  Selection,
-  DropdownItem,
-  DropdownMenu,
-  Dropdown,
-  DropdownTrigger,
   Modal,
   ModalContent,
   ModalHeader,
@@ -42,7 +36,7 @@ import { FaPenToSquare } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const res = await fetch(`http://backend:4000/api/events/getByOrganizer`, {
+  const res = await fetch(`http://localhost:4000/api/events/getByOrganizer`, {
     method: "GET",
     credentials: "include",
     headers: {

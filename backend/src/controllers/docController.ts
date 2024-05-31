@@ -3,6 +3,7 @@ import type { User } from "@prisma/client";
 import { prisma } from "../utils/db";
 
 export const createDocument = async (req: Request, res: Response) => {
+  console.log(req.body.email);
   if (req.body.docURL && req.body.user) {
     try {
       const newDoc = await prisma.document.create({

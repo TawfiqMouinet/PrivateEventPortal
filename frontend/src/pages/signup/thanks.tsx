@@ -11,8 +11,9 @@ export default function Unverified() {
         </CardHeader>
         <CardBody>
           <p className="text-center text-2xl">
-            Your ID will soon be verified by an administrator. Thank you for
-            your patience.
+            Your ID will soon be verified by an administrator. In the meanwhile,
+            you should verify your email using the link we just sent you! Thank
+            you for your patience.
           </p>
         </CardBody>
       </Card>

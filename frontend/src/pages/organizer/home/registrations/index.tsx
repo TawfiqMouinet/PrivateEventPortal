@@ -36,7 +36,7 @@ import { parseDate } from "@internationalized/date";
 import toast from "react-hot-toast";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const res = await fetch(`http://backend:4000/api/registrations/get`, {
+  const res = await fetch(`http://localhost:4000/api/registrations/get`, {
     method: "GET",
     credentials: "include",
     headers: {

@@ -19,7 +19,15 @@ type Cookies = {
 
 const SECRET = process.env.JWT_SECRET!;
 
+function calculate_age(dob: Date) {
+  var diff_ms = Date.now() - new Date(dob).getTime();
+  var age_dt = new Date(diff_ms);
+  var age = Math.abs(age_dt.getUTCFullYear() - 1970);
+  return age;
+}
+
 export const register = async (req: Request, res: Response) => {
+  const regex = /^(?=.*\d)(?=.*[!@#$%^&*_])(?=.*[a-z])(?=.*[A-Z]).{12,}$/;
   try {
     const { name, email, dob, role, password } = req.body;
     const existingUser = await prisma.user.findUnique({
@@ -27,9 +35,14 @@ export const register = async (req: Request, res: Response) => {
         email: email,
       },
     });
-
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
+    }
+    if (regex.test(password) === false) {
+      return res.status(401).json({ message: "Invalid Password" });
+    }
+    if (calculate_age(dob) < 18) {
+      return res.status(402).json({ message: "User is under 18" });
     }
     console.log("Hashing password");
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -60,6 +73,52 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
+export const sendVerificationEmail = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    if (req.body.email && req.body.name) {
+      const emailToken = jwt.sign({ email: req.body.email }, SECRET, {
+        expiresIn: "1d",
+      });
+      const link = `http://localhost:4000/api/auth/verifyemail?token=${emailToken}`;
+
+      res.status(200).json({ link: link });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    if (!req.query.token) {
+      return res.status(400).json({ message: "Invalid Token" });
+    }
+    const token = req.query.token;
+    jwt.verify(token as string, SECRET, async (err, decoded: any) => {
+      if (err) {
+        return res.status(401).json({ message: "Invalid or Expired Token" });
+      }
+      const user = await prisma.user.update({
+        where: {
+          email: decoded?.email,
+        },
+        data: {
+          emailVerified: true,
+        },
+      });
+      if (!user.verified) {
+        res.status(200).redirect(`http://localhost:3000/signin/emailverified`);
+      } else {
+        res.status(200).redirect(`http://localhost:3000/signin/unlocked`);
+      }
+    });
+  } catch (error) {
+    res.status(500).redirect(`http://localhost:3000`);
+  }
+};
 export const login = async (
   req: AuthRequest,
   res: Response,
@@ -87,6 +146,20 @@ export const login = async (
       return res.status(402).json({ message: "Invalid credentials" });
     }
 
+    await prisma.user.update({
+      where: {
+        email: email,
+      },
+      data: {
+        failedLogins: 0,
+      },
+    });
+
+    console.log("Checking if user verified their email");
+    if (!user.emailVerified) {
+      console.log("User has not verified their email");
+      return res.status(406).json({ message: "Email not verified" });
+    }
     console.log("Checking if user is verified");
     if (!user.verified) {
       console.log("User is not verified");
@@ -104,6 +177,36 @@ export const login = async (
   } catch (error) {
     console.error("Error in login: ", error);
     res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+export const blockEmail = async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.body.email && req.body.user.user.failedLogins >= 2) {
+      const user = await prisma.user.update({
+        where: {
+          email: req.body.email,
+        },
+        data: {
+          emailVerified: false,
+          failedLogins: 0,
+        },
+      });
+
+      res.status(200).json({ message: "Email blocked successfully" });
+    } else if (req.body.email) {
+      const user = await prisma.user.update({
+        where: {
+          email: req.body.email,
+        },
+        data: {
+          failedLogins: req.body.user.user.failedLogins + 1,
+        },
+      });
+      res.status(201).json({ message: "Failed logins incremented" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
@@ -266,6 +369,39 @@ export const verifyUser = async (req: AuthRequest, res: Response) => {
         },
       });
       res.status(200).json({ message: "User verified successfully" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: { error } });
+  }
+};
+
+export const getUserByEmail = async (req: Request, res: Response) => {
+  try {
+    if (req.body.email) {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: req.body.email,
+        },
+      });
+      res.status(200).json({ user });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: { error } });
+  }
+};
+
+export const setConsent = async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.user) {
+      const user = await prisma.user.update({
+        where: {
+          id: req.user.id,
+        },
+        data: {
+          consented: true,
+        },
+      });
+      res.status(200).json({ message: "Consent set successfully" });
     }
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: { error } });

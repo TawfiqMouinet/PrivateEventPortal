@@ -27,15 +27,17 @@ model User{
   name      String
   hashedPassword  String
   verified Boolean @default(false)
+  emailVerified Boolean @default(false)
+  failedLogins Int @default(0)
   role      Role @default(ATTENDEE)
   dob       DateTime
+  consented Boolean @default(false)
   organizer Organizer?
   sessions Session[]
   registration Registration[]
   document Document[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
 }
 
 model Session {
